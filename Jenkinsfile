@@ -33,5 +33,20 @@ pipeline {
             }
         }
 
+        stage('Maven Test') {
+            steps {
+                dir('application') {
+                    sh 'mvn clean test'
+                }
+            }
+        }
+
+        stage('Maven Package') {
+            steps {
+                dir('application') {
+                    sh 'mvn package -DskipTests'
+                }
+            }
+        }
     }
 }
