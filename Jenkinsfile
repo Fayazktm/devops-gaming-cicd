@@ -48,5 +48,13 @@ pipeline {
                 }
             }
         }
+
+        stage('Docker Build') {
+            steps {
+                dir('application') {
+                    sh 'docker build -t gaming-app:1.0 .'
+                }
+            }
+        }
     }
 }
