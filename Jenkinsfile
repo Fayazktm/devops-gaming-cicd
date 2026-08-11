@@ -63,5 +63,27 @@ pipeline {
                 sh 'docker run --name gaming-app-container gaming-app:1.0'
             }
         }
+
+        stage('Docker Tag') {
+            steps {
+                sh 'docker tag gaming-app:1.0 fayzhub/gaming-app:1.0'
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        docker push fayzhub/gaming-app:1.0
+                        docker logout
+                    '''
+                }
+            }
+        }
     }
 }
