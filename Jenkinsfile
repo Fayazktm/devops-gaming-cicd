@@ -72,23 +72,25 @@ pipeline {
         }
 
         stage('Docker Run') {
-    steps {
-        sh """
-            docker rm -f gaming-app-container || true
+            steps {
+                sh """
+                    docker rm -f gaming-app-container || true
 
-            docker run -d --name gaming-app-container ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker run -d \
+                        --name gaming-app-container \
+                        ${IMAGE_NAME}:${IMAGE_TAG}
 
-            sleep 3
+                    sleep 3
 
-            docker logs gaming-app-container
+                    docker logs gaming-app-container
 
-            if [ "\$(docker inspect -f '{{.State.Running}}' gaming-app-container)" != "true" ]; then
-                echo "ERROR: Container stopped unexpectedly."
-                exit 1
-            fi
-        """
-    }
-}
+                    if [ "\$(docker inspect -f '{{.State.Running}}' gaming-app-container)" != "true" ]; then
+                        echo "ERROR: Container stopped unexpectedly."
+                        exit 1
+                    fi
+                """
+            }
+        }
 
         stage('Docker Tag') {
             steps {
@@ -98,15 +100,21 @@ pipeline {
 
         stage('Docker Push') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-credentials',
-                    usernameVariable: 'DOCKER_USERNAME',
-                    passwordVariable: 'DOCKER_PASSWORD'
-                )]) {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_USERNAME',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
                     sh """
-                        echo "\$DOCKER_PASSWORD" | docker login -u "\$DOCKER_USERNAME" --password-stdin
+                        echo "\$DOCKER_PASSWORD" | docker login \
+                            -u "\$DOCKER_USERNAME" \
+                            --password-stdin
+
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
                         docker push ${IMAGE_NAME}:latest
+
                         docker logout
                     """
                 }
@@ -114,44 +122,39 @@ pipeline {
         }
 
         stage('Deploy') {
-    steps {
-        sh """
-            echo "===== DEPLOYMENT START ====="
+            steps {
+                sh """
+                    docker pull ${IMAGE_NAME}:${IMAGE_TAG}
 
-            docker pull ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker rm -f gaming-app-container || true
 
-            docker rm -f gaming-app-container || true
+                    docker run -d \
+                        --name gaming-app-container \
+                        -p 8081:8080 \
+                        ${IMAGE_NAME}:${IMAGE_TAG}
 
-            docker run -d \
-                --name gaming-app-container \
-                -p 8081:8080 \
-                ${IMAGE_NAME}:${IMAGE_TAG}
+                    sleep 3
 
-            sleep 5
+                    docker logs gaming-app-container
 
-            echo "===== CONTAINER STATUS ====="
-            docker ps --filter "name=gaming-app-container"
-
-            echo "===== APPLICATION LOGS ====="
-            docker logs gaming-app-container
-
-            if [ "\$(docker inspect -f '{{.State.Running}}' gaming-app-container)" != "true" ]; then
-                echo "ERROR: Container is not running."
-                exit 1
-            fi
-
-            echo "===== DEPLOYMENT SUCCESS ====="
-        """
+                    if [ "\$(docker inspect -f '{{.State.Running}}' gaming-app-container)" != "true" ]; then
+                        echo "ERROR: Deployment container is not running."
+                        exit 1
+                    fi
+                """
+            }
+        }
     }
-}
 
     post {
         always {
             echo "Pipeline finished with status: ${currentBuild.currentResult}"
         }
+
         failure {
             echo 'Pipeline failed — check logs above for details.'
         }
+
         success {
             echo "Deployed ${IMAGE_NAME}:${IMAGE_TAG} successfully."
         }
