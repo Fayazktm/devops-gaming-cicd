@@ -59,8 +59,11 @@ pipeline {
 
         stage('Docker Run') {
             steps {
-                sh 'docker rm -f gaming-app-container || true'
-                sh 'docker run --name gaming-app-container gaming-app:1.0'
+                sh '''
+                    docker rm -f gaming-app-container || true
+                    docker run --name gaming-app-container gaming-app:1.0
+                    docker logs gaming-app-container
+                '''
             }
         }
 
@@ -92,6 +95,7 @@ pipeline {
                     docker pull fayzhub/gaming-app:1.0
                     docker rm -f gaming-app-container || true
                     docker run --name gaming-app-container fayzhub/gaming-app:1.0
+                    docker logs gaming-app-container
                 '''
             }
         }
