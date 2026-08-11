@@ -1,11 +1,17 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = 'fayzhub/gaming-app'
+        IMAGE_TAG  = "${env.BUILD_NUMBER}"
+    }
+
     stages {
 
         stage('Checkout') {
             steps {
                 echo 'Checking out source code...'
+                checkout scm
             }
         }
 
@@ -36,7 +42,15 @@ pipeline {
         stage('Maven Test') {
             steps {
                 dir('application') {
-                    sh 'mvn clean test'
+                    sh '''
+                        echo "===== MAVEN TEST START ====="
+                        whoami
+                        pwd
+                        java -version
+                        mvn -version
+                        mvn clean test
+                        echo "===== MAVEN TEST END ====="
+                    '''
                 }
             }
         }
@@ -52,24 +66,25 @@ pipeline {
         stage('Docker Build') {
             steps {
                 dir('application') {
-                    sh 'docker build -t gaming-app:1.0 .'
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
 
         stage('Docker Run') {
             steps {
-                sh '''
+                sh """
                     docker rm -f gaming-app-container || true
-                    docker run --name gaming-app-container gaming-app:1.0
+                    docker run -d --name gaming-app-container ${IMAGE_NAME}:${IMAGE_TAG}
+                    sleep 3
                     docker logs gaming-app-container
-                '''
+                """
             }
         }
 
         stage('Docker Tag') {
             steps {
-                sh 'docker tag gaming-app:1.0 fayzhub/gaming-app:1.0'
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
             }
         }
 
@@ -80,24 +95,38 @@ pipeline {
                     usernameVariable: 'DOCKER_USERNAME',
                     passwordVariable: 'DOCKER_PASSWORD'
                 )]) {
-                    sh '''
-                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-                        docker push fayzhub/gaming-app:1.0
+                    sh """
+                        echo "\$DOCKER_PASSWORD" | docker login -u "\$DOCKER_USERNAME" --password-stdin
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                        docker push ${IMAGE_NAME}:latest
                         docker logout
-                    '''
+                    """
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                sh '''
-                    docker pull fayzhub/gaming-app:1.0
+                sh """
+                    docker pull ${IMAGE_NAME}:${IMAGE_TAG}
                     docker rm -f gaming-app-container || true
-                    docker run --name gaming-app-container fayzhub/gaming-app:1.0
+                    docker run -d --name gaming-app-container ${IMAGE_NAME}:${IMAGE_TAG}
+                    sleep 3
                     docker logs gaming-app-container
-                '''
+                """
             }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline finished with status: ${currentBuild.currentResult}"
+        }
+        failure {
+            echo 'Pipeline failed — check logs above for details.'
+        }
+        success {
+            echo "Deployed ${IMAGE_NAME}:${IMAGE_TAG} successfully."
         }
     }
 }
