@@ -56,5 +56,12 @@ pipeline {
                 }
             }
         }
+
+        stage('Docker Run') {
+            steps {
+                sh 'docker rm -f gaming-app-container || true'
+                sh 'docker run --name gaming-app-container gaming-app:1.0'
+            }
+        }
     }
 }
