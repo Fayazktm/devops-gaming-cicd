@@ -114,17 +114,36 @@ pipeline {
         }
 
         stage('Deploy') {
-            steps {
-                sh """
-                    docker pull ${IMAGE_NAME}:${IMAGE_TAG}
-                    docker rm -f gaming-app-container || true
-                    docker run -d --name gaming-app-container ${IMAGE_NAME}:${IMAGE_TAG}
-                    sleep 3
-                    docker logs gaming-app-container
-                """
-            }
-        }
+    steps {
+        sh """
+            echo "===== DEPLOYMENT START ====="
+
+            docker pull ${IMAGE_NAME}:${IMAGE_TAG}
+
+            docker rm -f gaming-app-container || true
+
+            docker run -d \
+                --name gaming-app-container \
+                -p 8081:8080 \
+                ${IMAGE_NAME}:${IMAGE_TAG}
+
+            sleep 5
+
+            echo "===== CONTAINER STATUS ====="
+            docker ps --filter "name=gaming-app-container"
+
+            echo "===== APPLICATION LOGS ====="
+            docker logs gaming-app-container
+
+            if [ "\$(docker inspect -f '{{.State.Running}}' gaming-app-container)" != "true" ]; then
+                echo "ERROR: Container is not running."
+                exit 1
+            fi
+
+            echo "===== DEPLOYMENT SUCCESS ====="
+        """
     }
+}
 
     post {
         always {
