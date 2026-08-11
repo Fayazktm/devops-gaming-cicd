@@ -85,5 +85,15 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker pull fayzhub/gaming-app:1.0
+                    docker rm -f gaming-app-container || true
+                    docker run --name gaming-app-container fayzhub/gaming-app:1.0
+                '''
+            }
+        }
     }
 }
