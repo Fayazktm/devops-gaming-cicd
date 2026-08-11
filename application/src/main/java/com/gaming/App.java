@@ -15,30 +15,30 @@ public class App {
         int port = 8080;
 
         HttpServer server = HttpServer.create(
-                new InetSocketAddress("0.0.0.0", port),
-                0
+                new InetSocketAddress("0.0.0.0", port), 0
         );
 
-        server.createContext("/", App::handleHome);
-        server.createContext("/health", App::handleHealth);
+        server.createContext("/", App::handleRequest);
 
         server.setExecutor(null);
         server.start();
 
-        System.out.println("Gaming App started on port " + port);
+        System.out.println("Gaming Hub started on port " + port);
     }
 
-    private static void handleHome(HttpExchange exchange) throws IOException {
+    private static void handleRequest(HttpExchange exchange) throws IOException {
 
         String html = """
                 <!DOCTYPE html>
-                <html>
+                <html lang="en">
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>DevOps Gaming Platform</title>
+
+                    <title>Gaming DevOps Hub</title>
 
                     <style>
+
                         * {
                             box-sizing: border-box;
                             margin: 0;
@@ -47,116 +47,98 @@ public class App {
 
                         body {
                             font-family: Arial, sans-serif;
-                            background: #0f172a;
+                            background: #0b1020;
                             color: white;
                             min-height: 100vh;
                         }
 
-                        nav {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                            padding: 20px 8%;
-                            background: #111827;
-                            border-bottom: 1px solid #334155;
-                        }
-
-                        .logo {
-                            font-size: 22px;
-                            font-weight: bold;
-                        }
-
-                        .logo span {
-                            color: #38bdf8;
-                        }
-
-                        nav a {
-                            color: #cbd5e1;
-                            text-decoration: none;
-                            margin-left: 25px;
-                        }
-
-                        nav a:hover {
-                            color: #38bdf8;
-                        }
-
                         .hero {
-                            text-align: center;
-                            padding: 90px 20px 60px;
+                            min-height: 100vh;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            padding: 40px 20px;
+                            background:
+                                radial-gradient(circle at top right, #243b75, transparent 40%),
+                                radial-gradient(circle at bottom left, #32145f, transparent 40%),
+                                #0b1020;
+                        }
+
+                        .container {
+                            width: 100%;
+                            max-width: 1050px;
                         }
 
                         .badge {
                             display: inline-block;
                             padding: 8px 16px;
-                            border-radius: 20px;
-                            background: #0c4a6e;
-                            color: #7dd3fc;
-                            margin-bottom: 25px;
+                            border: 1px solid #4f8cff;
+                            border-radius: 30px;
+                            color: #72a7ff;
+                            margin-bottom: 20px;
+                            font-size: 14px;
                         }
 
                         h1 {
-                            font-size: 52px;
-                            margin-bottom: 15px;
+                            font-size: 56px;
+                            line-height: 1.1;
+                            margin-bottom: 20px;
                         }
 
-                        .highlight {
-                            color: #38bdf8;
+                        h1 span {
+                            color: #4f8cff;
                         }
 
                         .subtitle {
-                            color: #94a3b8;
+                            color: #b8c2d9;
                             font-size: 19px;
                             max-width: 700px;
-                            margin: auto;
-                            line-height: 1.6;
+                            line-height: 1.7;
+                            margin-bottom: 35px;
                         }
 
                         .buttons {
-                            margin-top: 35px;
+                            display: flex;
+                            gap: 15px;
+                            flex-wrap: wrap;
+                            margin-bottom: 45px;
                         }
 
                         .button {
-                            display: inline-block;
-                            padding: 13px 25px;
-                            margin: 8px;
-                            border-radius: 8px;
+                            padding: 14px 24px;
+                            border-radius: 10px;
                             text-decoration: none;
                             font-weight: bold;
+                            display: inline-block;
                         }
 
                         .primary {
-                            background: #38bdf8;
-                            color: #082f49;
-                        }
-
-                        .secondary {
-                            border: 1px solid #475569;
+                            background: #4f8cff;
                             color: white;
                         }
 
-                        .section {
-                            max-width: 1100px;
-                            margin: auto;
-                            padding: 40px 20px 80px;
-                        }
-
-                        .section-title {
-                            text-align: center;
-                            margin-bottom: 35px;
+                        .secondary {
+                            border: 1px solid #46516d;
+                            color: white;
                         }
 
                         .cards {
                             display: grid;
-                            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                            grid-template-columns: repeat(3, 1fr);
                             gap: 20px;
                         }
 
                         .card {
-                            background: #1e293b;
-                            border: 1px solid #334155;
+                            background: rgba(255,255,255,0.06);
+                            border: 1px solid rgba(255,255,255,0.1);
+                            border-radius: 16px;
                             padding: 25px;
-                            border-radius: 12px;
-                            text-align: center;
+                            backdrop-filter: blur(10px);
+                        }
+
+                        .icon {
+                            font-size: 32px;
+                            margin-bottom: 15px;
                         }
 
                         .card h3 {
@@ -164,170 +146,123 @@ public class App {
                         }
 
                         .card p {
-                            color: #94a3b8;
+                            color: #9da9c2;
+                            line-height: 1.6;
                         }
 
                         .status {
-                            margin-top: 40px;
-                            background: #1e293b;
-                            border: 1px solid #334155;
+                            margin-top: 30px;
+                            padding: 15px 20px;
                             border-radius: 12px;
-                            padding: 30px;
-                            text-align: center;
+                            background: rgba(34, 197, 94, 0.1);
+                            border: 1px solid rgba(34, 197, 94, 0.3);
+                            color: #72e6a0;
                         }
 
-                        .online {
-                            color: #4ade80;
-                            font-weight: bold;
-                            font-size: 20px;
-                            margin-bottom: 20px;
+                        @media (max-width: 750px) {
+
+                            h1 {
+                                font-size: 40px;
+                            }
+
+                            .cards {
+                                grid-template-columns: 1fr;
+                            }
+
                         }
 
-                        footer {
-                            text-align: center;
-                            padding: 30px;
-                            color: #64748b;
-                            border-top: 1px solid #334155;
-                        }
                     </style>
                 </head>
 
                 <body>
 
-                    <nav>
-                        <div class="logo">⚡ <span>Gaming</span> DevOps</div>
-
-                        <div>
-                            <a href="/">Home</a>
-                            <a href="/health">Health</a>
-                        </div>
-                    </nav>
-
                     <section class="hero">
 
-                        <div class="badge">☁ Cloud & DevOps Project</div>
+                        <div class="container">
 
-                        <h1>
-                            Build. Deploy. <span class="highlight">Scale.</span>
-                        </h1>
-
-                        <p class="subtitle">
-                            A containerized Java application deployed through
-                            an automated CI/CD pipeline using GitHub, Jenkins,
-                            Maven, Docker, Docker Hub and AWS.
-                        </p>
-
-                        <div class="buttons">
-                            <a class="button primary" href="/health">
-                                🚀 Check Application
-                            </a>
-
-                            <a class="button secondary" href="#stack">
-                                ⚙ Technology Stack
-                            </a>
-                        </div>
-
-                    </section>
-
-                    <section class="section" id="stack">
-
-                        <div class="section-title">
-                            <h2>DevOps Technology Stack</h2>
-                        </div>
-
-                        <div class="cards">
-
-                            <div class="card">
-                                <h3>🔀 GitHub</h3>
-                                <p>Source Control</p>
+                            <div class="badge">
+                                🚀 DEVOPS PROJECT
                             </div>
 
-                            <div class="card">
-                                <h3>🔧 Jenkins</h3>
-                                <p>CI/CD Automation</p>
-                            </div>
+                            <h1>
+                                Gaming <span>DevOps Hub</span>
+                            </h1>
 
-                            <div class="card">
-                                <h3>☕ Maven</h3>
-                                <p>Build & Testing</p>
-                            </div>
-
-                            <div class="card">
-                                <h3>🐳 Docker</h3>
-                                <p>Containerization</p>
-                            </div>
-
-                            <div class="card">
-                                <h3>📦 Docker Hub</h3>
-                                <p>Image Registry</p>
-                            </div>
-
-                            <div class="card">
-                                <h3>☁ AWS</h3>
-                                <p>Cloud Deployment</p>
-                            </div>
-
-                        </div>
-
-                        <div class="status">
-
-                            <div class="online">
-                                ● APPLICATION ONLINE
-                            </div>
-
-                            <p>
-                                Java 11 &nbsp; | &nbsp;
-                                Docker &nbsp; | &nbsp;
-                                AWS EC2
+                            <p class="subtitle">
+                                A containerized Java application deployed through
+                                an automated CI/CD pipeline using GitHub, Jenkins,
+                                Maven, Docker, Docker Hub and AWS.
                             </p>
 
+                            <div class="buttons">
+
+                                <a class="button primary" href="#">
+                                    🎮 Launch Platform
+                                </a>
+
+                                <a class="button secondary" href="#">
+                                    ⚙️ CI/CD Pipeline
+                                </a>
+
+                            </div>
+
+                            <div class="cards">
+
+                                <div class="card">
+                                    <div class="icon">☁️</div>
+                                    <h3>AWS</h3>
+                                    <p>
+                                        Cloud infrastructure and application
+                                        deployment running on AWS EC2.
+                                    </p>
+                                </div>
+
+                                <div class="card">
+                                    <div class="icon">🔧</div>
+                                    <h3>Jenkins</h3>
+                                    <p>
+                                        Automated CI/CD pipeline for testing,
+                                        building and deploying the application.
+                                    </p>
+                                </div>
+
+                                <div class="card">
+                                    <div class="icon">🐳</div>
+                                    <h3>Docker</h3>
+                                    <p>
+                                        Application packaged into a portable
+                                        container and published to Docker Hub.
+                                    </p>
+                                </div>
+
+                            </div>
+
+                            <div class="status">
+                                ● Application Online &nbsp; | &nbsp;
+                                Java 21 &nbsp; | &nbsp;
+                                Dockerized &nbsp; | &nbsp;
+                                CI/CD Enabled
+                            </div>
+
                         </div>
 
                     </section>
-
-                    <footer>
-                        DevOps Gaming Platform • Built by Fayaz Ahamed
-                    </footer>
 
                 </body>
                 </html>
                 """;
 
-        sendResponse(exchange, html, "text/html");
-    }
-
-    private static void handleHealth(HttpExchange exchange) throws IOException {
-
-        String response = """
-                {
-                    "application": "Gaming Application",
-                    "status": "UP",
-                    "version": "1.0",
-                    "environment": "AWS",
-                    "container": "Docker",
-                    "deployment": "Jenkins CI/CD"
-                }
-                """;
-
-        sendResponse(exchange, response, "application/json");
-    }
-
-    private static void sendResponse(
-            HttpExchange exchange,
-            String response,
-            String contentType) throws IOException {
-
-        byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+        byte[] response = html.getBytes(StandardCharsets.UTF_8);
 
         exchange.getResponseHeaders().set(
                 "Content-Type",
-                contentType + "; charset=UTF-8"
+                "text/html; charset=UTF-8"
         );
 
-        exchange.sendResponseHeaders(200, bytes.length);
+        exchange.sendResponseHeaders(200, response.length);
 
-        try (OutputStream outputStream = exchange.getResponseBody()) {
-            outputStream.write(bytes);
+        try (OutputStream output = exchange.getResponseBody()) {
+            output.write(response);
         }
     }
 }
