@@ -72,15 +72,23 @@ pipeline {
         }
 
         stage('Docker Run') {
-            steps {
-                sh """
-                    docker rm -f gaming-app-container || true
-                    docker run -d --name gaming-app-container ${IMAGE_NAME}:${IMAGE_TAG}
-                    sleep 3
-                    docker logs gaming-app-container
-                """
-            }
-        }
+    steps {
+        sh """
+            docker rm -f gaming-app-container || true
+
+            docker run -d --name gaming-app-container ${IMAGE_NAME}:${IMAGE_TAG}
+
+            sleep 3
+
+            docker logs gaming-app-container
+
+            if [ "\$(docker inspect -f '{{.State.Running}}' gaming-app-container)" != "true" ]; then
+                echo "ERROR: Container stopped unexpectedly."
+                exit 1
+            fi
+        """
+    }
+}
 
         stage('Docker Tag') {
             steps {
