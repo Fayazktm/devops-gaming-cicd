@@ -144,6 +144,36 @@ pipeline {
                 """
             }
         }
+
+        stage('Health Check') {
+            steps {
+                sh '''
+                    echo "===== APPLICATION HEALTH CHECK ====="
+
+                    for i in 1 2 3 4 5; do
+
+                        if curl -f http://localhost:8081/; then
+                            echo "======================================"
+                            echo "APPLICATION HEALTH CHECK PASSED"
+                            echo "Application is UP"
+                            echo "======================================"
+                            exit 0
+                        fi
+
+                        echo "Application not ready... retrying"
+                        sleep 2
+                    done
+
+                    echo "======================================"
+                    echo "APPLICATION HEALTH CHECK FAILED"
+                    echo "======================================"
+
+                    docker logs gaming-app-container
+
+                    exit 1
+                '''
+            }
+        }
     }
 
     post {
